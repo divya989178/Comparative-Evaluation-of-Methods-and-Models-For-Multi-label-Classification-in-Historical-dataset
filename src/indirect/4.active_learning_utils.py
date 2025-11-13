@@ -27,7 +27,7 @@ def mlc_collate_fn(batch):
               'labels': labels}
     return output
 
-def mlc_predict(args, model, dataset):
+def mlc_predict(args, model, dataset): #for calculating uncertainity by any of the active learning technique
     model.eval()
     data_loader = DataLoader(dataset, batch_size=12, shuffle=False, collate_fn=mlc_collate_fn) #or: collate
     pred_logits = []
@@ -42,7 +42,7 @@ def mlc_predict(args, model, dataset):
     pred_logits = torch.cat(pred_logits,dim=0)
     return pred_logits
 
-def get_bert_embeddings(args, features, model: nn.Module, normalize: bool=True):
+def get_bert_embeddings(args, features, model: nn.Module, normalize: bool=True):# used by KMeansSampling active learning technique
     model.eval()
     embeddings = []
     if isinstance(model, AutoModelForSequenceClassification):
