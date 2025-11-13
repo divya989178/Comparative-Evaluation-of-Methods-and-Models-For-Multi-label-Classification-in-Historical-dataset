@@ -24,28 +24,22 @@ def filter_none_labels(dataset):
 
 def compute_metrics(p, label_array, log_file):
     predictions_raw, labels = p
-    # Check if predictions or labels are None
     if predictions_raw is None or labels is None:
         ugly_log(log_file, "Predictions or labels are None in compute_metrics")
         return {}
 
     try:
       probs = expit(predictions_raw)
-      # Convert probabilities to binary predictions (0 or 1)
       predictions = (probs > 0.5).astype(int)
       labels = labels.astype(int)
 
-
-      # Compute micro F1
       f1_micro = f1_score(labels,predictions, average='micro',zero_division=0)
-      # Compute macro F1
       f1_macro = f1_score(labels,predictions, average='macro',zero_division=0)
 
 
       msg = f"f1_micro:{f1_micro}|f1_macro:{f1_macro}"
       ugly_log(log_file, msg)
 
-      # Return the computed F1 scores
       return {"f1_micro": f1_micro, "f1_macro": f1_macro}
 
     except Exception as e:
