@@ -4,7 +4,10 @@ this function if the sample id of training matches the cache id, it uses GenAI i
 present in cache it marks the sample as unlabeled. Outputs are sent to processor which converts the output into huggingface 
 dataset.
 
-processor also creates cache file if it doesn't exit (usually in the beginning)
+processor also creates cache file if it doesn't exit (usually in the beginning).
+processor updates the cache file with newly annotated samples and reloads the entire dataset with updated samples and tokenizes.
+tokenized samples are sent to active learning loop as test or train features.
+
 """
 import os
 import ujson as json
