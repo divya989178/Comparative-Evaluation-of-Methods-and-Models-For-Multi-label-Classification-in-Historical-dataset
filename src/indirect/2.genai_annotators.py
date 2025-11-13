@@ -1,4 +1,7 @@
+"""
+annotates the training samples with the help of selected genAI with demo.
 
+"""
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from huggingface_hub import login
 import torch
