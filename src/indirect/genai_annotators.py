@@ -9,7 +9,7 @@ import google.generativeai as genai
 import anthropic
 
 class open_annotator:
-    def __init__(self, engine: str = 'qwen'):
+    def __init__(self, engine: str):
         self.input_format = input_format
         self.output_format = output_format
         self.qwen = "Qwen/Qwen2-7B-Instruct"
@@ -61,7 +61,7 @@ class open_annotator:
                     print("Max retries reached. Aborting operation.")
                     return None
 
-                print("Retrying...")
+                print("Retrying")
 
         return None
 
@@ -80,12 +80,12 @@ class open_annotator:
                 continue
             if 'labels' not in entity:
                 continue
-            if all(label in tagset for label in entity['labels']):
+            if all(label in tagset for label in entity):
                 outputs.append(entity)
         return outputs
 
 class close_Annotator:
-    def __init__(self, engine: str = 'gpt-3.5-turbo'):
+    def __init__(self, engine: str):
         self.input_format = input_format
         self.output_format = output_format
         self.gemini = "gemini-1.5-pro-002"
@@ -163,12 +163,12 @@ class close_Annotator:
                 continue
             if 'labels' not in entity:
                 continue
-            if all(label in tagset for label in entity['labels']):
+            if all(label in tagset for label in entity):
                 outputs.append(entity)
         return outputs
 
 class Annotator:
-  def __init__(self, engine:str='qwen',annotator_type:str='open'):
+  def __init__(self, engine:str,annotator_type:str):
     self.annotator_type=annotator_type
     if annotator_type=='open':
       self.annotator=open_annotator(engine)
