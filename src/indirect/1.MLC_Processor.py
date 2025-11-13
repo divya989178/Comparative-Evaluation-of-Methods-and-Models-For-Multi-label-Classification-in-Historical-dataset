@@ -1,3 +1,11 @@
+"""
+tokenizes the text and binarizes the labels without attention mask and padding. In the active learning loop,
+this function if the sample id of training matches the cache id, it uses GenAI inputs, if the sample is not
+present in cache it marks the sample as unlabeled. Outputs are sent to processor which converts the output into huggingface 
+dataset.
+
+processor also creates cache file if it doesn't exit (usually in the beginning)
+"""
 import os
 import ujson as json
 from tqdm import tqdm
