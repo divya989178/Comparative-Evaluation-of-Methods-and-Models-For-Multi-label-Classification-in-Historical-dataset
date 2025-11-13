@@ -5,6 +5,8 @@ import torch
 from func_timeout import func_set_timeout
 import re
 import ujson as json
+import google.generativeai as genai
+import anthropic
 
 class open_annotator:
     def __init__(self, engine: str = 'qwen'):
