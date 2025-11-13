@@ -44,7 +44,7 @@ class KMeansSampling(Strategy):
         centers = centers.to(device)
         dist = torch.cdist(centers, embeddings)     # [n_clusters, n_samples]
         min_distances, lab_indices = torch.min(dist, dim=-1)
-        indices = topk_indices.tolist()
+        indices =[pool_indices[i] for i in lab_indices]
         return indices
 
 class LeastConfidence(Strategy):
