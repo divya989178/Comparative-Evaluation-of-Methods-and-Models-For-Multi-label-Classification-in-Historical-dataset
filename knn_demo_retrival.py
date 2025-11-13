@@ -7,6 +7,13 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 from sentence_transformers import SentenceTransformer
+import pandas as pd
+import ujson as json
+
+demo=pd.read_excel("/content/demo.xlsx")
+test=pd.read_excel("/content/test.xlsx")
+train=pd.read_excel("/content/train.xlsx")
+val=pd.read_excel("/content/val.xlsx")
 
 def embeddings(args, text):
     data_size = len(text)
@@ -24,16 +31,6 @@ def cosine_similarity(key: torch.Tensor, value: torch.Tensor):
     value = F.normalize(value, dim=-1)
     cos_sim = torch.mm(key, value.transpose(0, 1))
     return cos_sim
-
-pip install ujson
-
-import pandas as pd
-import ujson as json
-
-demo=pd.read_excel("/content/demo.xlsx")
-test=pd.read_excel("/content/test.xlsx")
-train=pd.read_excel("/content/train.xlsx")
-val=pd.read_excel("/content/val.xlsx")
 
 def knn_demo_retrieval(args):
     data={name:df.reset_index().rename(columns={'index':'id'}).to_dict('records') for name,df in zip(["demo","test","train","val"],[demo,test,train,val])}
