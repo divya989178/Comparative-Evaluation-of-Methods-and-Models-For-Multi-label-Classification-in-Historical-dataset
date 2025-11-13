@@ -1,7 +1,8 @@
 """
 calculates the similarity of paragraphs in each of these files with demo, 
 and gets indicies of top 5 paragraphs from demo similar to each paragraph in train,val and test set 
-and creates json files for train val and test with indices mapping to 5 similar paragraphs in demo
+and creates json files for train val and test with indices mapping to 5 similar paragraphs in demo.
+Output data is used for selecting examples for few shot
 """
 
 from tqdm import tqdm
