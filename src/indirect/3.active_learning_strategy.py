@@ -38,7 +38,7 @@ class Strategy(ABC):
     def query(self, args, k, model, features):
         return
 
-    def init_labeled_data(self, n_sample: int = None):
+    def init_labeled_data(self, n_sample: int = None): #select desired random samples
         if n_sample is None:
             raise ValueError('Please specify initial sample ratio/size.')
         if n_sample > len(self):
@@ -59,7 +59,7 @@ class Strategy(ABC):
 
         return all_indices
 
-    def update(self, indices, features):
+    def update(self, indices, features): #gets the unlabled data and calls annotator to label the samples
         self.lab_data_mask[indices] = True
         records = self.annotate(features)
         return records
