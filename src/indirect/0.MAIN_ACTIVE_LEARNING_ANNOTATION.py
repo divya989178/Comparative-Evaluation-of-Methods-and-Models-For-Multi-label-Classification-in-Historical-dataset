@@ -20,9 +20,9 @@ class Args():
   max_train_steps=10000
   early_stopping_patience=5
     # active learning related
-  default=2500
-  init_samples=250
-  acquisition_samples=250
+  default=500
+  init_samples=50
+  acquisition_samples=50
   strategy='entropy' #confidence KMeansSampling
     # annotator related
   engine='qwen' #mistral gemini claude
