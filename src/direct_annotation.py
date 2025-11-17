@@ -10,11 +10,12 @@ import
 import anthropic
 
 class open_annotator:
-    def __init__(self, engine: str = 'qwen'):
+    def __init__(self, engine: str = 'qwen',use_demo:bool=True):
         self.input_format = input_format
         self.output_format = output_format
         self.qwen = "Qwen/Qwen2-7B-Instruct"
         self.mistral = "mistralai/Mistral-7B-Instruct-v0.3"
+        self.use_demo=use_demo
         if engine=="qwen":
           self.tokenizer = AutoTokenizer.from_pretrained(self.qwen)
           self.model = AutoModelForCausalLM.from_pretrained(self.qwen,torch_dtype=torch.bfloat16,device_map="auto")
@@ -24,12 +25,11 @@ class open_annotator:
         if self.tokenizer.pad_token_id is None:
           self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-    def prepare_demo(self, sample_id: str) -> List[Dict]:
-      return [self.demo_file[str(pointer['id'])] for pointer in reversed(self.demo_index[str(sample_id)])]
-
     def generate_prompt(self, sample, demo=None):
         to_annotate = self.input_format.format(json.dumps(sample['text']))
-        if self.demo and demo:
+        if self.use_demo and demo:
+            demo_file = {str(i['id']):i for i in demo}
+            demo = [demo_file[str(pointer['id'])] for pointer in reversed(demo_index[str(sample['id'])])]
             demo_annotations = "\n".join(
                 f"{self.input_format.format(json.dumps(d['text']))}\n{self.output_format.format(json.dumps(d['label']))}" for d in demo
             )
@@ -38,8 +38,7 @@ class open_annotator:
             return f"Please annotate the following input:\n{to_annotate}"
 
     @func_set_timeout(60)
-    def online_annotate(self, sample, demo=None):
-        demo = self.prepare_demo(sample['id']) if self.use_demos else None
+    def online_annotate(self, sample, demo=None): #to annotate
         annotation_prompt = self.generate_prompt(sample, demo)
         retry_count = 0  # Initialize retry counter
 
@@ -70,8 +69,27 @@ class open_annotator:
 
         return None
 
-class close_Annotator:
-    def __init__(self, engine: str = 'claude'):
+    def postprocess(self, result):
+        tagset = domain
+        try:
+          extracted_result=json.loads(result.strip())
+          if not isinstance(extracted_result, list):
+            extracted_result = [extracted_result]
+        except json.JSONDecodeError:
+          print("failed to parse JSON from result")
+          return []
+        outputs = []
+        for entity in extracted_result:
+            if not isinstance(entity, dict):
+                continue
+            if 'labels' not in entity:
+                continue
+            if all(label in tagset for label in entity['labels']):
+                outputs.append(entity)
+        return outputs
+
+class close_annotator:
+    def __init__(self, engine: str = 'claude',use_demo: bool=True):
         self.input_format = input_format
         self.output_format = output_format
         self.gemini = "gemini-1.5-pro-002"
@@ -90,7 +108,9 @@ class close_Annotator:
 
     def generate_prompt(self, sample, demo=None):
         to_annotate = self.input_format.format(json.dumps(sample['text']))
-        if self.demo and demo:
+        if self.use_demo and demo:
+            demo_file = {str(i['id']):i for i in demo}
+            demo = [demo_file[str(pointer['id'])] for pointer in reversed(demo_index[str(sample['id'])])]
             demo_annotations = "\n".join(
                 f"{self.input_format.format(json.dumps(d['text']))}\n{self.output_format.format(json.dumps(d['labels']))}" for d in demo
             )
