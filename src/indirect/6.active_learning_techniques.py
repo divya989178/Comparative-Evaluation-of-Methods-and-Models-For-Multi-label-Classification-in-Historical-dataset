@@ -3,8 +3,8 @@ from torch import nn
 from kmeans_pytorch import kmeans
 
 class entropy(Strategy):
-    def __init__(self, pool_size, setting: str, engine: str,
-                 reduction: str='mean',annotator_type:str,train_knn_demo: str):
+    def __init__(self, pool_size, setting: str='', engine: str='',
+                 reduction: str='mean',annotator_type:str='',train_knn_demo: str=''):
         super().__init__(pool_size,annotator_type,train_knn_demo, setting, engine)
         assert reduction in ['mean', 'sum', 'max']
         self.reduction = reduction
@@ -29,8 +29,8 @@ class entropy(Strategy):
         return lab_indices
 
 class KMeansSampling(Strategy):
-    def __init__(self, pool_size, setting: str, engine: str,
-                 annotator_type:str,train_knn_demo: str):
+    def __init__(self, pool_size, setting: str='', engine: str='',
+                 annotator_type:str='',train_knn_demo: str=''):
         super().__init__(pool_size,annotator_type,train_knn_demo, setting, engine)
 
     def query(self, args, k, pool_features, model):
@@ -48,8 +48,8 @@ class KMeansSampling(Strategy):
         return indices
 
 class LeastConfidence(Strategy):
-    def __init__(self, pool_size, setting: str, engine: str,
-                 reduction: str='mean',annotator_type:str,train_knn_demo: str):
+    def __init__(self, pool_size, setting: str='', engine: str='',
+                 reduction: str='mean',annotator_type:str='',train_knn_demo: str=''):
         super().__init__(pool_size,annotator_type,train_knn_demo, setting, engine)
         assert reduction in ['mean', 'sum', 'min']
         self.reduction = reduction
