@@ -7,7 +7,7 @@ import numpy as np
 
 RETRY = 3
 class Strategy(ABC):
-    def __init__(self, pool_size,annotator_type:str,train_knn_demo:str, setting: str='knn', engine: str,):
+    def __init__(self, pool_size,annotator_type:str,train_knn_demo:str='', setting: str='knn', engine: str='',):
         self.lab_data_mask = np.zeros(pool_size, dtype=bool)
         self.annotator = Annotator(engine,annotator_type)
         self.setting = setting
