@@ -8,34 +8,61 @@ import ujson as json
 import google.generativeai as genai
 import
 import anthropic
+from pydantic import BaseModel, Field
+from typing import List,Literal
+import json
+import outlines
+from outlines import Generator
+import google.generativeai as genai
+from transformers import pipeline
+import pandas as pd
+import os
+from google.colab import userdata
+
+
+LabelType = Literal[
+    'travel transport and communication',
+    'disease and death',
+    'money work and finance',
+    'religion',
+    'law politics and warfare',
+    'social life',
+    'general'
+]
+
+class ParagraphLabels(BaseModel):
+    paragraph: str = Field(description="The paragraph being annotated.")
+    labels: List[LabelType]
 
 class open_annotator:
-    def __init__(self, engine: str = 'qwen',use_demo:bool=True):
+    def __init__(self, engine: str = 'mistral',use_demo:bool=True):
         self.input_format = input_format
         self.output_format = output_format
-        self.qwen = "Qwen/Qwen2-7B-Instruct"
+        self.qwen = "Qwen/Qwen2.5-7B-Instruct"
         self.mistral = "mistralai/Mistral-7B-Instruct-v0.3"
         self.use_demo=use_demo
         if engine=="qwen":
           self.tokenizer = AutoTokenizer.from_pretrained(self.qwen)
-          self.model = AutoModelForCausalLM.from_pretrained(self.qwen,torch_dtype=torch.bfloat16,device_map="auto")
+          self.model = outlines.from_transformers(
+    AutoModelForCausalLM.from_pretrained(self.qwen,dtype=torch.bfloat16, device_map="auto"),
+    AutoTokenizer.from_pretrained(self.qwen)
+)
         elif engine=="mistral":
            self.tokenizer = AutoTokenizer.from_pretrained(self.mistral)
-           self.model = AutoModelForCausalLM.from_pretrained(self.mistral,torch_dtype=torch.bfloat16,device_map="auto")
-        if self.tokenizer.pad_token_id is None:
-          self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+           self.model = outlines.from_transformers(
+    AutoModelForCausalLM.from_pretrained(self.mistral,dtype=torch.bfloat16, device_map="auto"),
+    AutoTokenizer.from_pretrained(self.mistral))
+
 
     def generate_prompt(self, sample, demo=None):
         to_annotate = self.input_format.format(json.dumps(sample['text']))
         if self.use_demo and demo:
             demo_file = {str(i['id']):i for i in demo}
             demo = [demo_file[str(pointer['id'])] for pointer in reversed(demo_index[str(sample['id'])])]
-            demo_annotations = "\n".join(
-                f"{self.input_format.format(json.dumps(d['text']))}\n{self.output_format.format(json.dumps(d['label']))}" for d in demo
-            )
-            return f"Here are some examples to guide the labeling:\n{demo_annotations}\n\n Now annotate the following input:\n{to_annotate}"
+            demo_annotations = "\n".join(f"{{{self.input_format.format(json.dumps(d['text']))},{self.output_format.format(json.dumps(d['label']))}}}" for d in demo)
+            return f"Here are some examples to guide the labeling:\n{demo_annotations}\n Now please annotate the following paragraph using topic labels:\n{to_annotate}"
         else:
-            return f"Please annotate the following input:\n{to_annotate}"
+            return f"please annotate the following paragraph using topic labels and return the output in the following JSON format:{{“paragraph”: paragraph, “labels”: [topics,..]}}:\n{to_annotate}"
 
     @func_set_timeout(60)
     def online_annotate(self, sample, demo=None): #to annotate
@@ -49,12 +76,9 @@ class open_annotator:
         {"role": "user", "content": annotation_prompt}
     ]
               formatted_prompt = self.tokenizer.apply_chat_template(messages, tokenize=False,add_generation_prompt=True)
-              model_inputs = self.tokenizer(formatted_prompt, return_tensors="pt",padding=True).to("cuda")
-              generated_ids = self.model.generate(model_inputs.input_ids,attention_mask=model_inputs.attention_mask,max_new_tokens=1000, do_sample=False)
-              new_tokens = generated_ids[0][len(model_inputs.input_ids[0]):]
-              decoded = self.tokenizer.decode(new_tokens, skip_special_tokens=True)
-              print(decoded)
-              return self.postprocess(str(decoded))
+              result=self.model(formatted_prompt,ParagraphLabels,max_new_tokens=10000,do_sample=False,use_cache=True)
+              print(result)
+              return self.postprocess(str(result))
 
             except Exception as e:
                 print(f"Error during annotation: {e}")
@@ -70,82 +94,81 @@ class open_annotator:
         return None
 
     def postprocess(self, result):
-        tagset = domain
         try:
+          mach=re.search(r'\{\s*.*?\s*\}', result, re.DOTALL)
+          if mach:
+            result=mach.group(0)
           extracted_result=json.loads(result.strip())
-          if not isinstance(extracted_result, list):
-            extracted_result = [extracted_result]
         except json.JSONDecodeError:
           print("failed to parse JSON from result")
           return []
         outputs = []
-        for entity in extracted_result:
-            if not isinstance(entity, dict):
-                continue
-            if 'labels' not in entity:
-                continue
-            if all(label in tagset for label in entity['labels']):
-                outputs.append(entity)
+        if isinstance(extracted_result, dict) and 'labels' in extracted_result:
+            outputs.append(extracted_result)
         return outputs
 
 class close_annotator:
     def __init__(self, engine: str = 'claude',use_demo: bool=True):
         self.input_format = input_format
         self.output_format = output_format
-        self.gemini = "gemini-1.5-pro-002"
-        self.claude = "claude-3-7-sonnet-20250219"
+        self.engine=engine
+        self.use_demo=use_demo
+        self.n_shots = 5
+        self.gemini = "gemini-2.0-flash-Lite"
+        self.claude = "claude-haiku-4-5-20251001"
         if engine=="gemini":
           import getpass
           GEMINI_API_KEY = getpass.getpass("Enter your Gemini API key: ")
           if GEMINI_API_KEY:
             genai.configure(api_key=GEMINI_API_KEY)
-            self.model = genai.GenerativeModel('gemini-1.5-pro-002',system_instruction=system_template)
+            self.model = genai.GenerativeModel('gemini-2.5-flash-lite',system_instruction=system_template)
         if engine=="claude":
-          self.client = anthropic.Anthropic(api_key="")
+          self.client = anthropic.Anthropic(api_key="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")
 
-    def prepare_demo(self, sample_id: str) -> List[Dict]:
-      return [self.demo_file[str(pointer['id'])] for pointer in reversed(self.demo_index[str(sample_id)])]
 
     def generate_prompt(self, sample, demo=None):
         to_annotate = self.input_format.format(json.dumps(sample['text']))
         if self.use_demo and demo:
             demo_file = {str(i['id']):i for i in demo}
             demo = [demo_file[str(pointer['id'])] for pointer in reversed(demo_index[str(sample['id'])])]
-            demo_annotations = "\n".join(
-                f"{self.input_format.format(json.dumps(d['text']))}\n{self.output_format.format(json.dumps(d['labels']))}" for d in demo
-            )
-            return f"Here are some examples:\n{demo_annotations}\n\nPlease now annotate the following input:\n{to_annotate}"
+            demo_annotations = "\n".join(f"{{{self.input_format.format(json.dumps(d['text']))},{self.output_format.format(json.dumps(d['label']))}}}" for d in demo)
+            return f"Here are some examples to guide the labeling:\n{demo_annotations}\n Now please annotate the following paragraph using topic labels:\n{to_annotate}"
         else:
-            return f"Please annotate the following input:\n{to_annotate}"
+            return f"please annotate the following paragraph using topic labels:\n{to_annotate}"
 
     @func_set_timeout(60)
-    def online_annotate(self, sample, engine, demo=None):
-        demo = self.prepare_demo(sample['id']) if self.use_demos else None
+    def online_annotate(self, sample, demo=None):
         annotation_prompt = self.generate_prompt(sample, demo)
         retry_count = 0  # Initialize retry counter
 
         while retry_count < 3:
             try:
-              if engine == "gemini":
-                response = self.gemini.generate_content(
+              if self.engine == "gemini":
+                response = self.model.generate_content(
                    annotation_prompt,
             generation_config=genai.types.GenerationConfig(
                 max_output_tokens=1000,
                 temperature=0.0,
+                response_mime_type="application/json",
+                response_schema=ParagraphLabels.model_json_schema()
             )
         )
-
                 decoded = response.text
-                return self.postprocess(response)
-              else:
-                if engine == "claude":
-                  response = self.client.messages.create(
+                print(decoded)
+                return self.postprocess(decoded)
+
+              elif self.engine == "claude":
+                  response = self.client.messages.parse(
                       model=self.claude,
                       max_tokens=1000,
                       temperature=0.0,
                       system=system_template,
-                      messages=[{"role": "system", "content": annotation_prompt}]
+                      messages=[{"role": "user", "content": annotation_prompt}],
+                      output_format=ParagraphLabels,
                      )
+                  parsed=response.parsed_output
+                  print(parsed)
+                  return [parsed.model_dump()] if parsed and hasattr(parsed, 'labels') else []
             except Exception as e:
                 print(f"Error during annotation: {e}")
                 print(f"Problem was with: {annotation_prompt}")
@@ -160,33 +183,34 @@ class close_annotator:
         return None
 
     def postprocess(self, result):
-        tagset = domain
         try:
+          mach=re.search(r'\{.*\}', result, re.DOTALL)
+          if mach:
+            result=mach.group(0)
           extracted_result=json.loads(result.strip())
-          if not isinstance(extracted_result, list):
-            extracted_result = [extracted_result]
         except json.JSONDecodeError:
           print("failed to parse JSON from result")
           return []
         outputs = []
-        for entity in extracted_result:
-            if not isinstance(entity, dict):
-                continue
-            if 'labels' not in entity:
-                continue
-            if all(label in tagset for label in entity['labels']):
-                outputs.append(entity)
+        if isinstance(extracted_result, dict) and 'labels' in extracted_result:
+            outputs.append(extracted_result)
         return outputs
 
 class Annotator:
-  def __init__(self, engine:str='qwen',annotator_type:str='open'):
+  def __init__(self, engine:str='claude',annotator_type:str='close'):
     self.annotator_type=annotator_type
     if annotator_type=='open':
       self.annotator=open_annotator(engine)
     elif annotator_type=='close':
       self.annotator=close_annotator(engine)
-  def online_annotate(self,sample,demo,engine=None):
+  def online_annotate(self,sample:dict,demo):
     if self.annotator_type=='open':
       return self.annotator.online_annotate(sample,demo)
     elif self.annotator_type=='close':
-      return self.annotator.online_annotate(sample,engine,demo)
+      return self.annotator.online_annotate(sample,demo)
+annotator= Annotator(engine='mistral',annotator_type='open')
+
+results = []
+for sample in test:
+    result = annotator.online_annotate(sample,demo)
+    results.append(result)
