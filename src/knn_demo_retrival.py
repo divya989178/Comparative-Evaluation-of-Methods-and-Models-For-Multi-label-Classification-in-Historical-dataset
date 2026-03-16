@@ -59,7 +59,7 @@ def knn_demo_retrieval(args):
 class Args:
   def __init__(self):
     self.topk = 5
-    self.embedding_model = 'sentence-transformers/LaBSE'
+    self.embedding_model = 'intfloat/multilingual-e5-large'
     self.device = 'cuda:0'
 
 args = Args()
