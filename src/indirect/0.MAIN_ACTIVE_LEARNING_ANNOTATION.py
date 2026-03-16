@@ -152,6 +152,7 @@ def active_learning_loop(args):
         if len(records) > 0:
             #input the new_annotations n in cache
             data_processor.update_cache(records)
+active_learning_loop(args)
             #loading in the updated dataset
             data_processor.reload()
             #get the new pool_features
