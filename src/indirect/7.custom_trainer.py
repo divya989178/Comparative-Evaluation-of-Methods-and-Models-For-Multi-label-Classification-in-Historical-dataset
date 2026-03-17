@@ -24,65 +24,110 @@ def filter_none_labels(dataset):
 
 def compute_metrics_with_report(p, label_array, log_file):
     predictions_raw, labels = p
-    # Check if predictions or labels are None
+
     if predictions_raw is None or labels is None:
         ugly_log(log_file, "Predictions or labels are None in compute_metrics")
         return {}
 
     try:
-        # Apply sigmoid to get probabilities
         probs = expit(predictions_raw)
-
-        # Convert probabilities to binary predictions (0 or 1)
         y_pred = (probs >= 0.5).astype(int)
         y_true = labels.astype(int)
 
-        # Generate confusion matrix
-        conf_mat, _ = mlcm.cm(y_true, y_pred, False)
-
-        # Get number of labels
         num_labels = y_true.shape[1]
-
         per_label_metrics = {}
         per_label_f1 = []
+        per_label_precision = []
+        per_label_recall = []
 
-        # Calculate per-label metrics from confusion matrix
+        total_TP = 0
+        total_FP = 0
+        total_FN = 0
+
         for i in range(num_labels):
             label_name = label_array[i]
 
-            # Extract TP, FP, FN from the confusion matrix
-            TP = float(conf_mat[i, i])
-            FP = float(conf_mat[:, i].sum() - TP)
-            FN = float(conf_mat[i, :].sum() - TP)
-           if (TP + FP) > 0:
-            precision = TP / (TP + FP)
-           else:
-            precision = 0
-           per_label_precision.append(precision)
+            yt = y_true[:, i]
+            yp = y_pred[:, i]
 
-           if (TP + FN) > 0:
-            recall = TP / (TP + FN)
-           else:
-            recall = 0
-           per_label_recall.append(recall)
+            TP = int(np.sum((yt == 1) & (yp == 1)))
+            FP = int(np.sum((yt == 0) & (yp == 1)))
+            FN = int(np.sum((yt == 1) & (yp == 0)))
+            TN = int(np.sum((yt == 0) & (yp == 0)))
 
-           if (precision + recall) > 0:
-             f1 = 2 * precision * recall / (precision + recall)
-           else:
-             f1 = 0
-           per_label_f1.append(f1)
+            precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+            recall = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
-           if len(per_label_f1) > 0:
-            macro_f1 = sum(per_label_f1) / len(per_label_f1)
-           else:
-            macro_f1 = 0
+            total_TP += TP
+            total_FP += FP
+            total_FN += FN
 
-        metrics = {'f1': macro_f1}
-        # Log overall metrics
-        msg = f"f1_macro:{metrics}"
+            per_label_precision.append(precision)
+            per_label_recall.append(recall)
+            per_label_f1.append(f1)
+
+            per_label_metrics[label_name] = {
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+            }
+
+        f1_macro = float(np.mean(per_label_f1)) if per_label_f1 else 0.0
+        macro_precision = float(np.mean(per_label_precision)) if per_label_precision else 0.0
+        macro_recall = float(np.mean(per_label_recall)) if per_label_recall else 0.0
+
+        micro_precision = total_TP / (total_TP + total_FP) if (total_TP + total_FP) > 0 else 0.0
+        micro_recall = total_TP / (total_TP + total_FN) if (total_TP + total_FN) > 0 else 0.0
+        f1_micro = (
+            2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+            if (micro_precision + micro_recall) > 0 else 0.0
+        )
+
+        msg = (
+            f"f1_micro:{f1_micro:.4f}|f1_macro:{f1_macro:.4f}|"
+            f"micro_precision:{micro_precision:.4f}|micro_recall:{micro_recall:.4f}"
+        )
         ugly_log(log_file, msg)
 
-        return metrics
+        ugly_log(log_file, "\n" + "=" * 80)
+        ugly_log(log_file, "PER-LABEL CLASSIFICATION REPORT")
+        ugly_log(log_file, "=" * 80)
+        ugly_log(log_file, f"{'Label':<30} {'Precision':>10} {'Recall':>10} {'F1':>10} {'Support':>10}")
+        ugly_log(log_file, "-" * 80)
+
+        for label_name, metrics in per_label_metrics.items():
+            ugly_log(
+                log_file,
+                f"{label_name:<30} {metrics['precision']:>10.4f} {metrics['recall']:>10.4f} "
+                f"{metrics['f1']:>10.4f} {metrics['support']:>10}"
+            )
+
+        ugly_log(log_file, "-" * 80)
+        ugly_log(log_file, f"{'micro avg':<30} {micro_precision:>10.4f} {micro_recall:>10.4f} {f1_micro:>10.4f} {y_true.sum():>10.0f}")
+        ugly_log(log_file, f"{'macro avg':<30} {macro_precision:>10.4f} {macro_recall:>10.4f} {f1_macro:>10.4f} {'-':>10}")
+        ugly_log(log_file, "=" * 80 + "\n")
+
+        result = {
+            "f1_micro": float(f1_micro),
+            "f1_macro": float(f1_macro),
+            "micro_precision": float(micro_precision),
+            "micro_recall": float(micro_recall),
+        }
+
+        for label_name, metrics in per_label_metrics.items():
+            safe_label_name = label_name.replace(" ", "_").replace("-", "_")
+            result[f"{safe_label_name}_f1"] = float(metrics["f1"])
+            result[f"{safe_label_name}_precision"] = float(metrics["precision"])
+            result[f"{safe_label_name}_recall"] = float(metrics["recall"])
+
+        return result
+
+    except Exception as e:
+        ugly_log(log_file, f"Error in compute_metrics: {str(e)}")
+        import traceback
+        ugly_log(log_file, f"Traceback: {traceback.format_exc()}")
+        return {}
 
 class CustomTrainer(Trainer):
     def __init__(self, *args, **kwargs):
