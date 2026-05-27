@@ -1,6 +1,6 @@
 Two Methods Direct and Indirect Methods
 
-Direct Method: Uses few and zero shot technique through open model (Qwen and Mistral) and Close Models (Gemini and Claude) to annotate the unlabeled dataset using the libraries like outlines and pyndatic to control the output generation.
+Direct Method: Uses few and zero shot technique through open model (Qwen and Mistral) and Close Models (Gemini and Claude) to annotate the unlabeled dataset using the libraries like outlines and pydantic to control the output generation.
 Indirect Method: Has 4 Main functions(with sub functions): 
 
 *Processor: Prepares the dataset for annotation (tokenization but without attention mask and padding) for training and annotation by GenAI. Creates a file name Cache to store labeled data. It is responsible for updating the cache file with newly annotated samples and reloads the training data with newly annotated samples
