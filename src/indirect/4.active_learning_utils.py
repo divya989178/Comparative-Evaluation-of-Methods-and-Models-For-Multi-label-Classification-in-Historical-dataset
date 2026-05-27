@@ -42,24 +42,4 @@ def mlc_predict(args, model, dataset): #for calculating uncertainity by any of t
     pred_logits = torch.cat(pred_logits,dim=0)
     return pred_logits
 
-def get_bert_embeddings(args, features, model: nn.Module, normalize: bool=True):# used by KMeansSampling active learning technique
-    model.eval()
-    embeddings = []
-    if isinstance(model, AutoModelForSequenceClassification):
-        dataloader = DataLoader(features, args.test_batch_size, shuffle=False, collate_fn=mlc_collate_fn)
-    else:
-        raise ValueError('Unknown model')
-    for batch in tqdm(dataloader, desc='Computing bert embeddings'):
-        inputs = {'input_ids': batch['input_ids'].to(args.device),
-                  'attention_mask': batch['attention_mask'].to(args.device)}
-        with torch.no_grad():
-            outputs = model.bert(**inputs)[0]   # [batch_size, seq_length, n_dim]
-            attention_mask = inputs['attention_mask']
-            outputs[attention_mask == 0] = 0
-            # mean pooling over sequence outputs
-            outputs = outputs.sum(dim=1) / attention_mask.sum(dim=-1).unsqueeze(-1)
-            if normalize:
-                outputs = F.normalize(outputs, p=2, dim=-1)
-            embeddings.append(outputs)
-    embeddings = torch.cat(embeddings, dim=0)
-    return embeddings
+
