@@ -123,7 +123,7 @@ class close_annotator:
             genai.configure(api_key=GEMINI_API_KEY)
             self.model = genai.GenerativeModel('gemini-2.5-flash-lite',system_instruction=system_template)
         if engine=="claude":
-          self.client = anthropic.Anthropic(api_key="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")
+          self.client = anthropic.Anthropic(api_key="")
 
 
     def generate_prompt(self, sample, demo=None):
