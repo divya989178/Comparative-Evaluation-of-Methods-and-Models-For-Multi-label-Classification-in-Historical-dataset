@@ -8,8 +8,7 @@ Indirect Method: Has 4 Main functions(with sub functions):
 *Annotator: Uses both open model and close models to annotate(few shot) desired number of unlabeled samples selected by active learning strategy.
 
 *Active learning strategy plus technique: It is responsible for managing the samples. Selects random samples initialy and sends it to annotator to sample.
-Filters out the labeled samples from unlabeled ones and calculates uncertainity of labels using any of the active learning technique (Entropy, KMeansSampling and KNN) 
-to get top desired number of samples the model is not sure of and sends it to annotator
+Filters out the labeled samples from unlabeled ones and calculates uncertainity of labels using any of the active learning technique to get top desired number of samples the model is not sure of and sends it to annotator
 
 *Custom trainer: Model gets trained through GenAI labeled samples
 
