@@ -25,14 +25,8 @@ def combine_document(group):
 
 docs_df = df.groupby('doc_id').apply(combine_document).reset_index(drop=True)
 
-def create_frequency_matrix(docs_df, label_names):
-    """
-    For each label, create features:
-    - label_present (binary)
-    - label_low (1-2 occurrences)
-    - label_medium (3-5 occurrences)
-    - label_high (6+ occurrences)
-    """
+def frequency_matrix(docs_df, label_names):
+
     features = []
 
     for _, doc in docs_df.iterrows():
@@ -63,7 +57,7 @@ label_names = sorted(all_labels)
 print(f"Unique labels: {label_names}")
 
 
-freq_matrix = create_frequency_matrix(docs_df, label_names)
+freq_matrix = frequency_matrix(docs_df, label_names)
 print(f"Frequency matrix shape: {freq_matrix.shape}")
 print(f"Features per label: 4 (present, low, medium, high)")
 
