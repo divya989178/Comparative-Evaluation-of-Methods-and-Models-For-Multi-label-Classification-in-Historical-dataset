@@ -1,0 +1,135 @@
+import pandas as pd
+pip install langid
+import re
+df=pd.read_csv("/content/annotations.csv")
+df=df[["events.statement","events._id","events.domain"]]
+
+import json
+with open('/content/letters.json') as f:
+    data = json.load(f)
+
+c=[]
+for i in data:
+    if i['_id'] in ["SB_J_23"]:
+        for topic in i['text'][2:-4]:
+          s=topic.split(' ')
+          c.append(s)
+d=[]
+for i in data:
+    if i['_id'] in ["SB_J_17"]:
+        for topic in i['text'][2:-3]:
+          s=topic.split(' ')
+          d.append(s)
+flat = [item for sublist in c for item in sublist]
+flat2=[item for sublist in d for item in sublist]
+two=[{"id":"SB_J_23","text":' '.join(flat)}]
+two.append({"id":"SB_J_17","text":' '.join(flat2)})
+
+para=[]
+for i in data:
+  for j,k in enumerate(i['text'][1:]):
+    if "Add."in k.split(' '):
+      break
+    if "End." in k.split(' '):
+      break
+    if len(k.split(' '))>6:
+      if not k.isupper():
+        if("Jhesus" not in k.split(' ')) & (len(k.split(' '))>13):
+          if ("At London" not in k.split(',')) & (len(k.split(' '))>10):
+             if ("from London" not in k.split(',')) & (len(k.split(' '))>10):
+              id=f"{i['_id']}"
+              para.append({"id":id,"text":k})
+
+def iseng(text):
+  lang, _ = langid.classify(text)
+  return lang == 'en'
+english_data = []
+
+for item in data:
+    text = item.get('text', '')
+    text = str(text)  # Convert to string
+    lang, confidence = langid.classify(text)
+
+    if lang == 'en':
+        english_data.append(item)
+english_data = [entry for entry in para if iseng(entry['text'])]
+
+chunk_counters = {}
+results = []
+for item in two:
+    orig_id = item['id']
+    text = " ".join(item["text"]) if isinstance(item["text"], list) else item["text"]
+    chunks = split_paragraph(text, 1000)
+    if orig_id not in chunk_counters:
+        chunk_counters[orig_id] = 0
+    for chunk in chunks:
+        new_id = f"{orig_id}.{chunk_counters[orig_id]}"
+        chunk_counters[orig_id] += 1
+        results.append({"id": new_id, "text": chunk})
+
+
+def clean_symb(value):
+    if isinstance(value, str):
+       value = re.sub(r'\.{2,}', '', value)
+       value = re.sub(r'/', '', value)
+       value = re.sub(r'\\','',value)
+       value = re.sub(r'[\[\]]','',value)
+       value = re.sub(r'\(\d+[a-zA-Z]\)', '', value)
+       value = re.sub(r'\(\d+\)','',value)
+       return value.strip()
+    return value
+result = [{k: clean_symb(v) for k, v in d.items()} for d in result]
+results = [{k: clean_symb(v) for k, v in d.items()} for d in results]
+
+df[df['events.domain'].notna()]
+for i in result:
+  domains = set()
+  for index, text in enumerate(df["events.statement"]):
+      s = i["id"].split('.')
+      l = df["events._id"].iloc[index].split('.')
+      if s[0] == l[0] and str(text) in i["text"]:
+        for domain in str(df["events.domain"].iloc[index]).split("/"):
+          domains.add(domain.strip())
+  i["domain"] = ",".join(domains) if domains else "nan"
+
+for entry in result:
+    domains = [label.strip() for label in entry["domain"].split(",")]
+    if len(domains) > 1:
+        domains = [label for label in domains if label != "nan"]
+    entry["domain"] = ",".join(domains) if domains else "nan"
+
+result= pd.DataFrame(result)
+com = pd.concat([result,results],ignore_index=True)
+com = com.drop(index=[3538,3539,3532,1946])
+
+print("Checking for problematic label patterns...")
+
+
+def has_empty_splits(x):
+    if isinstance(x, float) or x == '':
+        return False
+    splits = x.split(',')
+    return any(s.strip() == '' for s in splits)
+
+problematic = df[df["label"].apply(has_empty_splits)]
+print(f"\nRows with empty splits (extra commas): {len(problematic)}")
+if len(problematic) > 0:
+    print(problematic[['text', 'label']].head())
+    print("\nSample problematic labels:")
+    print(problematic['label'].head().tolist())
+
+
+all_labels = []
+for label_str in df['label']:
+    if isinstance(label_str, str):
+        all_labels.extend([l.strip() for l in label_str.split(',')])
+
+unique_labels = set(all_labels)
+print(f"\nUnique labels found (including empty): {sorted(unique_labels)}")
+print(f"Contains empty string: {'' in unique_labels}")
+
+
+empty_count = all_labels.count('')
+print(f"\nEmpty string occurrences: {empty_count}")
+
+no_nan=dff[dff["label"].notna()]
