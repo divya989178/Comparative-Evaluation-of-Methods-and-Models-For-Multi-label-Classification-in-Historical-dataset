@@ -1,4 +1,5 @@
-
+#transformers==5.4.0
+#outlines==1.2.12
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from huggingface_hub import login
 import torch
