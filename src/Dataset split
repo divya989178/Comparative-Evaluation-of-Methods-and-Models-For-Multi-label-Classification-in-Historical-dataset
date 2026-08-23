@@ -1,0 +1,107 @@
+import pandas as pd
+from collections import Counter
+import numpy as np
+from sklearn.preprocessing import MultiLabelBinarizer
+from iterstrat.ml_stratifiers import MultilabelStratifiedShuffleSplit
+
+
+df['doc_id'] = df['id'].str.rsplit('.', n=1).str[0]
+df["label"] = df["label"].apply(
+    lambda x: [label.strip() for label in str(x).split(',') if label.strip()]
+)
+
+def combine_document(group):
+    all_labels = [label for labels in group['label'] for label in labels]
+    label_counts = Counter(all_labels)
+
+    return pd.Series({
+        'doc_id': group['doc_id'].iloc[0],
+        'paragraphs': group['text'].tolist(),
+        'paragraph_ids': group['id'].tolist(),
+        'paragraph_labels': group['label'].tolist(),
+        'label_counts': dict(label_counts),
+        'num_paragraphs': len(group)
+    })
+
+docs_df = df.groupby('doc_id').apply(combine_document).reset_index(drop=True)
+
+def create_frequency_matrix(docs_df, label_names):
+    """
+    For each label, create features:
+    - label_present (binary)
+    - label_low (1-2 occurrences)
+    - label_medium (3-5 occurrences)
+    - label_high (6+ occurrences)
+    """
+    features = []
+
+    for _, doc in docs_df.iterrows():
+        counts = doc['label_counts']
+        feature_vector = []
+
+        for label in label_names:
+            count = counts.get(label, 0)
+
+            # Binary presence
+            feature_vector.append(1 if count > 0 else 0)
+
+            
+            feature_vector.append(1 if 1 <= count <= 2 else 0)  # Low
+            feature_vector.append(1 if 3 <= count <= 5 else 0)  # Medium
+            feature_vector.append(1 if count >= 6 else 0)       # High
+
+        features.append(feature_vector)
+
+    return np.array(features)
+
+
+all_labels = set()
+for counts in docs_df['label_counts']:
+    all_labels.update(counts.keys())
+label_names = sorted(all_labels)
+
+print(f"Unique labels: {label_names}")
+
+
+freq_matrix = create_frequency_matrix(docs_df, label_names)
+print(f"Frequency matrix shape: {freq_matrix.shape}")
+print(f"Features per label: 4 (present, low, medium, high)")
+
+
+msss = MultilabelStratifiedShuffleSplit(n_splits=1, test_size=2/3, random_state=42)
+for train_val_idx, test_idx in msss.split(docs_df, freq_matrix):
+    docs_train_val = docs_df.iloc[train_val_idx]
+    docs_test = docs_df.iloc[test_idx]
+
+print(f"\nTrain docs: {len(docs_train_val)}")
+print(f"Test docs: {len(docs_test)}")
+
+def expand_to_paragraphs(docs):
+    paragraphs = []
+    for _, doc in docs.iterrows():
+        for para_id, para_text, para_labels in zip(
+            doc['paragraph_ids'],
+            doc['paragraphs'],
+            doc['paragraph_labels']
+        ):
+            paragraphs.append({
+                'id': para_id,
+                'doc_id': doc['doc_id'],
+                'text': para_text,
+                'labels': para_labels  # Original paragraph-level labels
+            })
+    return pd.DataFrame(paragraphs)
+
+train_para_df = expand_to_paragraphs(docs_train_val)
+test_para_df = expand_to_paragraphs(docs_test)
+
+print(f"\n=== PARAGRAPH LEVEL ===")
+print(f"Val paragraphs: {len(train_para_df)}")
+print(f"Test paragraphs: {len(test_para_df)}")
+
+
+print("\nSample train paragraphs:")
+print(train_para_df[['id', 'doc_id', 'text', 'labels']].head())
+
+train_para_df['label'] = train_para_df['labels'].apply(lambda x: ','.join(x))
+test_para_df['label'] = test_para_df['labels'].apply(lambda x: ','.join(x))
