@@ -1,4 +1,5 @@
-#Apart from the code, the dataset is checked and corrected manually
+#In addition to the code, the dataset was manually checked and corrected during preprocessing.
+# For replication, I recommend starting from the data-splitting code, as the dataset has already undergone manual preprocessing.
 
 import pandas as pd
 from collections import Counter
@@ -144,7 +145,7 @@ for entry in result:
 results=pd.DataFrame(results)
 df = pd.concat([result,results],ignore_index=True)
 
-#dataset split
+#DATA SPLIT
 
 demo=pd.read_excel("/content/demo.xlsx")
 val=pd.read_excel("/content/val.xlsx")
