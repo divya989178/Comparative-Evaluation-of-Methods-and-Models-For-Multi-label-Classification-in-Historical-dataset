@@ -1,0 +1,1020 @@
+seed: 25
+loop: 0
+================================================================================
+
+                                    train_count  train_prop
+social life                                59.0    0.175074
+law politics and warfare                   36.0    0.106825
+travel transport and communication        264.0    0.783383
+disease and death                           7.0    0.020772
+money work and finance                    248.0    0.735905
+general                                    34.0    0.100890
+religion                                   19.0    0.056380================================================================================
+
+test results[[[252   0]
+  [ 61   0]]
+
+ [[252   0]
+  [ 27   0]]
+
+ [[ 92  51]
+  [  9 160]]
+
+ [[252   0]
+  [ 18   0]]
+
+ [[160  66]
+  [ 24  92]]
+
+ [[252   0]
+  [ 36   0]]
+
+ [[252   0]
+  [ 16   0]]
+
+ [[252  74]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          nan          0.00          0.00          61
+            1          nan          0.00          0.00          27
+            2          0.76          0.95          0.84          169
+            3          nan          0.00          0.00          18
+            4          0.58          0.79          0.67          116
+            5          nan          0.00          0.00          36
+            6          nan          0.00          0.00          16
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.57          0.57          0.57          443
+    macro avg          nan          0.25          0.22          443
+ weighted avg          nan          0.57          0.50          443
+seed: 25
+loop: 1
+================================================================================
+
+                                    train_count  train_prop
+social life                                86.0    0.182203
+law politics and warfare                   50.0    0.105932
+travel transport and communication        350.0    0.741525
+disease and death                           8.0    0.016949
+money work and finance                    319.0    0.675847
+general                                    66.0    0.139831
+religion                                   27.0    0.057203================================================================================
+
+test results[[[248  15]
+  [ 46  14]]
+
+ [[262   0]
+  [ 29   0]]
+
+ [[120  45]
+  [ 38 142]]
+
+ [[262   0]
+  [ 17   0]]
+
+ [[164  41]
+  [ 20  98]]
+
+ [[254  21]
+  [ 29   8]]
+
+ [[262   0]
+  [ 15   0]]
+
+ [[262  72]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.48          0.23          0.31          60
+            1          nan          0.00          0.00          29
+            2          0.76          0.79          0.77          180
+            3          nan          0.00          0.00          17
+            4          0.71          0.83          0.76          118
+            5          0.28          0.22          0.24          37
+            6          nan          0.00          0.00          15
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.57          0.57          0.57          456
+    macro avg          nan          0.30          0.30          456
+ weighted avg          nan          0.57          0.56          456
+seed: 25
+loop: 2
+================================================================================
+
+                                    train_count  train_prop
+social life                               140.0    0.230643
+law politics and warfare                   69.0    0.113674
+travel transport and communication        458.0    0.754530
+disease and death                          20.0    0.032949
+money work and finance                    378.0    0.622735
+general                                    82.0    0.135091
+religion                                   45.0    0.074135================================================================================
+
+test results[[[259  18]
+  [ 46  19]]
+
+ [[278   0]
+  [ 29   0]]
+
+ [[128  37]
+  [ 29 150]]
+
+ [[278   0]
+  [ 17   0]]
+
+ [[178  38]
+  [ 18 100]]
+
+ [[273  23]
+  [ 32   5]]
+
+ [[274   1]
+  [ 10   4]]
+
+ [[278  64]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.51          0.29          0.37          65
+            1          nan          0.00          0.00          29
+            2          0.80          0.84          0.82          179
+            3          nan          0.00          0.00          17
+            4          0.72          0.85          0.78          118
+            5          0.18          0.14          0.15          37
+            6          0.80          0.29          0.42          14
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.61          0.61          0.61          459
+    macro avg          nan          0.34          0.36          459
+ weighted avg          nan          0.61          0.60          459
+seed: 25
+loop: 3
+================================================================================
+
+                                    train_count  train_prop
+social life                               171.0    0.230458
+law politics and warfare                   85.0    0.114555
+travel transport and communication        546.0    0.735849
+disease and death                          28.0    0.037736
+money work and finance                    476.0    0.641509
+general                                   102.0    0.137466
+religion                                   64.0    0.086253================================================================================
+
+test results[[[258  22]
+  [ 36  30]]
+
+ [[288   0]
+  [ 28   0]]
+
+ [[133  40]
+  [ 23 155]]
+
+ [[287   0]
+  [ 15   1]]
+
+ [[194  26]
+  [ 25  94]]
+
+ [[285  14]
+  [ 35   3]]
+
+ [[283   6]
+  [  9   5]]
+
+ [[288  63]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.58          0.45          0.51          66
+            1          nan          0.00          0.00          28
+            2          0.79          0.87          0.83          178
+            3          1.00          0.06          0.12          16
+            4          0.78          0.79          0.79          119
+            5          0.18          0.08          0.11          38
+            6          0.45          0.36          0.40          14
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.63          0.63          0.63          459
+    macro avg          nan          0.37          0.39          459
+ weighted avg          nan          0.63          0.62          459
+seed: 25
+loop: 4
+================================================================================
+
+                                    train_count  train_prop
+social life                               206.0    0.234892
+law politics and warfare                  108.0    0.123147
+travel transport and communication        632.0    0.720639
+disease and death                          34.0    0.038769
+money work and finance                    558.0    0.636260
+general                                   136.0    0.155074
+religion                                   89.0    0.101482================================================================================
+
+test results[[[276  24]
+  [ 43  25]]
+
+ [[288  12]
+  [ 19  13]]
+
+ [[154  34]
+  [ 40 147]]
+
+ [[299   0]
+  [ 17   2]]
+
+ [[206  26]
+  [ 27  95]]
+
+ [[290  20]
+  [ 27  11]]
+
+ [[293  14]
+  [  8   8]]
+
+ [[301  51]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.51          0.37          0.43          68
+            1          0.52          0.41          0.46          32
+            2          0.81          0.79          0.80          187
+            3          1.00          0.11          0.19          19
+            4          0.79          0.78          0.78          122
+            5          0.35          0.29          0.32          38
+            6          0.36          0.50          0.42          16
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.62          0.62          0.62          482
+    macro avg          0.62          0.46          0.48          482
+ weighted avg          0.70          0.62          0.65          482
+seed: 25
+loop: 5
+================================================================================
+
+                                    train_count  train_prop
+social life                               234.0    0.231225
+law politics and warfare                  135.0    0.133399
+travel transport and communication        730.0    0.721344
+disease and death                          41.0    0.040514
+money work and finance                    644.0    0.636364
+general                                   156.0    0.154150
+religion                                  109.0    0.107708================================================================================
+
+test results[[[290   8]
+  [ 45  18]]
+
+ [[294  10]
+  [ 15  14]]
+
+ [[156  34]
+  [ 31 152]]
+
+ [[308   0]
+  [ 16   0]]
+
+ [[207  28]
+  [ 23 101]]
+
+ [[290  28]
+  [ 21  18]]
+
+ [[303   2]
+  [  8   5]]
+
+ [[308  49]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.69          0.29          0.40          63
+            1          0.58          0.48          0.53          29
+            2          0.82          0.83          0.82          183
+            3          nan          0.00          0.00          16
+            4          0.78          0.81          0.80          124
+            5          0.39          0.46          0.42          39
+            6          0.71          0.38          0.50          13
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.66          0.66          0.66          467
+    macro avg          nan          0.47          0.50          467
+ weighted avg          nan          0.66          0.67          467
+seed: 25
+loop: 6
+================================================================================
+
+                                    train_count  train_prop
+social life                               264.0    0.230166
+law politics and warfare                  156.0    0.136007
+travel transport and communication        814.0    0.709677
+disease and death                          46.0    0.040105
+money work and finance                    748.0    0.652136
+general                                   164.0    0.142982
+religion                                  117.0    0.102005================================================================================
+
+test results[[[273  38]
+  [ 34  40]]
+
+ [[295  15]
+  [ 13  18]]
+
+ [[178  24]
+  [ 66 135]]
+
+ [[311   6]
+  [ 16   2]]
+
+ [[213  31]
+  [ 27 100]]
+
+ [[304  14]
+  [ 33   9]]
+
+ [[304  25]
+  [  6   9]]
+
+ [[313  42]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.51          0.54          0.53          74
+            1          0.55          0.58          0.56          31
+            2          0.85          0.67          0.75          201
+            3          0.25          0.11          0.15          18
+            4          0.76          0.79          0.78          127
+            5          0.39          0.21          0.28          42
+            6          0.26          0.60          0.37          15
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.62          0.62          0.62          508
+    macro avg          0.51          0.50          0.49          508
+ weighted avg          0.68          0.62          0.64          508
+seed: 25
+loop: 7
+================================================================================
+
+                                    train_count  train_prop
+social life                               297.0    0.231669
+law politics and warfare                  183.0    0.142746
+travel transport and communication        919.0    0.716849
+disease and death                          50.0    0.039002
+money work and finance                    847.0    0.660686
+general                                   173.0    0.134945
+religion                                  129.0    0.100624================================================================================
+
+test results[[[290  17]
+  [ 32  36]]
+
+ [[308  10]
+  [ 13  18]]
+
+ [[172  35]
+  [ 39 154]]
+
+ [[326   0]
+  [ 17   0]]
+
+ [[225  36]
+  [ 22 101]]
+
+ [[315  23]
+  [ 29  11]]
+
+ [[320   9]
+  [  8   6]]
+
+ [[326  30]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.68          0.53          0.60          68
+            1          0.64          0.58          0.61          31
+            2          0.81          0.80          0.81          193
+            3          nan          0.00          0.00          17
+            4          0.74          0.82          0.78          123
+            5          0.32          0.28          0.30          40
+            6          0.40          0.43          0.41          14
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.67          0.67          0.67          486
+    macro avg          nan          0.49          0.50          486
+ weighted avg          nan          0.67          0.68          486
+seed: 25
+loop: 8
+================================================================================
+
+                                    train_count  train_prop
+social life                               321.0    0.226535
+law politics and warfare                  212.0    0.149612
+travel transport and communication       1016.0    0.717008
+disease and death                          53.0    0.037403
+money work and finance                    929.0    0.655610
+general                                   195.0    0.137615
+religion                                  138.0    0.097389================================================================================
+
+test results[[[273  23]
+  [ 37  30]]
+
+ [[293   3]
+  [ 19  10]]
+
+ [[161  18]
+  [ 46 142]]
+
+ [[302   0]
+  [ 15   1]]
+
+ [[207  19]
+  [ 24  96]]
+
+ [[284  37]
+  [ 21  19]]
+
+ [[298   6]
+  [  8   5]]
+
+ [[303  64]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.57          0.45          0.50          67
+            1          0.77          0.34          0.48          29
+            2          0.89          0.76          0.82          188
+            3          1.00          0.06          0.12          16
+            4          0.83          0.80          0.82          120
+            5          0.34          0.47          0.40          40
+            6          0.45          0.38          0.42          13
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.64          0.64          0.64          473
+    macro avg          0.69          0.47          0.51          473
+ weighted avg          0.77          0.64          0.68          473
+seed: 25
+loop: 9
+================================================================================
+
+                                    train_count  train_prop
+social life                               348.0    0.224227
+law politics and warfare                  227.0    0.146263
+travel transport and communication       1116.0    0.719072
+disease and death                          57.0    0.036727
+money work and finance                   1039.0    0.669459
+general                                   201.0    0.129510
+religion                                  141.0    0.090851================================================================================
+
+test results[[[289  14]
+  [ 35  34]]
+
+ [[311   8]
+  [ 18  12]]
+
+ [[170  30]
+  [ 39 153]]
+
+ [[322   0]
+  [ 16   1]]
+
+ [[223  33]
+  [ 21 100]]
+
+ [[308  18]
+  [ 25  15]]
+
+ [[315   9]
+  [  5   8]]
+
+ [[323  47]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.71          0.49          0.58          69
+            1          0.60          0.40          0.48          30
+            2          0.84          0.80          0.82          192
+            3          1.00          0.06          0.11          17
+            4          0.75          0.83          0.79          121
+            5          0.45          0.38          0.41          40
+            6          0.47          0.62          0.53          13
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.67          0.67          0.67          482
+    macro avg          0.69          0.51          0.53          482
+ weighted avg          0.75          0.67          0.69          482
+seed: 25
+loop: 10
+================================================================================
+
+                                    train_count  train_prop
+social life                               371.0    0.219917
+law politics and warfare                  248.0    0.147007
+travel transport and communication       1209.0    0.716657
+disease and death                          58.0    0.034381
+money work and finance                   1149.0    0.681091
+general                                   218.0    0.129223
+religion                                  154.0    0.091286================================================================================
+
+test results[[[293  10]
+  [ 44  29]]
+
+ [[312   4]
+  [ 20  10]]
+
+ [[166  36]
+  [ 36 156]]
+
+ [[320   0]
+  [ 14   2]]
+
+ [[219  36]
+  [ 18 103]]
+
+ [[308  16]
+  [ 29  14]]
+
+ [[314  18]
+  [  5   8]]
+
+ [[322  46]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.74          0.40          0.52          73
+            1          0.71          0.33          0.45          30
+            2          0.81          0.81          0.81          192
+            3          1.00          0.12          0.22          16
+            4          0.74          0.85          0.79          121
+            5          0.47          0.33          0.38          43
+            6          0.31          0.62          0.41          13
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.66          0.66          0.66          488
+    macro avg          0.68          0.49          0.51          488
+ weighted avg          0.74          0.66          0.67          488
+seed: 25
+loop: 11
+================================================================================
+
+                                    train_count  train_prop
+social life                               387.0    0.212404
+law politics and warfare                  269.0    0.147640
+travel transport and communication       1311.0    0.719539
+disease and death                          63.0    0.034577
+money work and finance                   1255.0    0.688804
+general                                   231.0    0.126784
+religion                                  164.0    0.090011================================================================================
+
+test results[[[295  22]
+  [ 39  29]]
+
+ [[308  12]
+  [ 16  16]]
+
+ [[166  36]
+  [ 29 158]]
+
+ [[323   0]
+  [ 15   1]]
+
+ [[225  28]
+  [ 27  99]]
+
+ [[309  13]
+  [ 25  15]]
+
+ [[318   5]
+  [  7   6]]
+
+ [[324  42]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.57          0.43          0.49          68
+            1          0.57          0.50          0.53          32
+            2          0.81          0.84          0.83          187
+            3          1.00          0.06          0.12          16
+            4          0.78          0.79          0.78          126
+            5          0.54          0.38          0.44          40
+            6          0.55          0.46          0.50          13
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.67          0.67          0.67          482
+    macro avg          0.69          0.49          0.53          482
+ weighted avg          0.73          0.67          0.68          482
+seed: 25
+loop: 12
+================================================================================
+
+                                    train_count  train_prop
+social life                               417.0    0.213081
+law politics and warfare                  279.0    0.142565
+travel transport and communication       1407.0    0.718958
+disease and death                          65.0    0.033214
+money work and finance                   1369.0    0.699540
+general                                   241.0    0.123148
+religion                                  168.0    0.085846================================================================================
+
+test results[[[295  40]
+  [ 38  37]]
+
+ [[316  10]
+  [ 18  16]]
+
+ [[180  32]
+  [ 53 152]]
+
+ [[327   7]
+  [ 13   5]]
+
+ [[228  29]
+  [ 26 104]]
+
+ [[320  21]
+  [ 31  12]]
+
+ [[326  12]
+  [ 10   6]]
+
+ [[332  38]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.48          0.49          0.49          75
+            1          0.62          0.47          0.53          34
+            2          0.83          0.74          0.78          205
+            3          0.42          0.28          0.33          18
+            4          0.78          0.80          0.79          130
+            5          0.36          0.28          0.32          43
+            6          0.33          0.38          0.35          16
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.64          0.64          0.64          521
+    macro avg          0.55          0.49          0.51          521
+ weighted avg          0.68          0.64          0.66          521
+seed: 25
+loop: 13
+================================================================================
+
+                                    train_count  train_prop
+social life                               443.0    0.211759
+law politics and warfare                  292.0    0.139579
+travel transport and communication       1509.0    0.721319
+disease and death                          65.0    0.031071
+money work and finance                   1469.0    0.702199
+general                                   263.0    0.125717
+religion                                  169.0    0.080784================================================================================
+
+test results[[[303  24]
+  [ 45  29]]
+
+ [[315   8]
+  [ 14  17]]
+
+ [[178  27]
+  [ 49 154]]
+
+ [[331   2]
+  [ 15   1]]
+
+ [[228  38]
+  [ 28 104]]
+
+ [[312  31]
+  [ 22  20]]
+
+ [[325  10]
+  [  8   7]]
+
+ [[332  41]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.55          0.39          0.46          74
+            1          0.68          0.55          0.61          31
+            2          0.85          0.76          0.80          203
+            3          0.33          0.06          0.11          16
+            4          0.73          0.79          0.76          132
+            5          0.39          0.48          0.43          42
+            6          0.41          0.47          0.44          15
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.65          0.65          0.65          513
+    macro avg          0.56          0.50          0.51          513
+ weighted avg          0.70          0.65          0.67          513
+seed: 25
+loop: 14
+================================================================================
+
+                                    train_count  train_prop
+social life                               453.0    0.203413
+law politics and warfare                  307.0    0.137854
+travel transport and communication       1623.0    0.728783
+disease and death                          66.0    0.029636
+money work and finance                   1584.0    0.711271
+general                                   273.0    0.122586
+religion                                  170.0    0.076336================================================================================
+
+test results[[[300  31]
+  [ 37  36]]
+
+ [[321   9]
+  [ 16  15]]
+
+ [[183  34]
+  [ 51 153]]
+
+ [[334   0]
+  [ 18   2]]
+
+ [[233  37]
+  [ 31 103]]
+
+ [[318  27]
+  [ 25  18]]
+
+ [[327  12]
+  [  7   9]]
+
+ [[336  35]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.54          0.49          0.51          73
+            1          0.62          0.48          0.55          31
+            2          0.82          0.75          0.78          204
+            3          1.00          0.10          0.18          20
+            4          0.74          0.77          0.75          134
+            5          0.40          0.42          0.41          43
+            6          0.43          0.56          0.49          16
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.64          0.64          0.64          521
+    macro avg          0.65          0.51          0.52          521
+ weighted avg          0.71          0.64          0.66          521
+seed: 25
+loop: 15
+================================================================================
+
+                                    train_count  train_prop
+social life                               462.0    0.195597
+law politics and warfare                  318.0    0.134632
+travel transport and communication       1725.0    0.730313
+disease and death                          68.0    0.028789
+money work and finance                   1681.0    0.711685
+general                                   290.0    0.122777
+religion                                  171.0    0.072396================================================================================
+
+test results[[[290  38]
+  [ 38  41]]
+
+ [[318   6]
+  [ 18  13]]
+
+ [[178  38]
+  [ 59 153]]
+
+ [[329   0]
+  [ 16   2]]
+
+ [[230  39]
+  [ 35 101]]
+
+ [[318  23]
+  [ 33  13]]
+
+ [[323  17]
+  [  6   8]]
+
+ [[331  44]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.52          0.52          0.52          79
+            1          0.68          0.42          0.52          31
+            2          0.80          0.72          0.76          212
+            3          1.00          0.11          0.20          18
+            4          0.72          0.74          0.73          136
+            5          0.36          0.28          0.32          46
+            6          0.32          0.57          0.41          14
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.62          0.62          0.62          536
+    macro avg          0.63          0.48          0.49          536
+ weighted avg          0.69          0.62          0.64          536
+seed: 25
+loop: 16
+================================================================================
+
+                                    train_count  train_prop
+social life                               467.0    0.187024
+law politics and warfare                  322.0    0.128955
+travel transport and communication       1853.0    0.742091
+disease and death                          68.0    0.027233
+money work and finance                   1804.0    0.722467
+general                                   293.0    0.117341
+religion                                  174.0    0.069684================================================================================
+
+test results[[[300  23]
+  [ 50  32]]
+
+ [[311  30]
+  [ 11  21]]
+
+ [[183  23]
+  [ 59 149]]
+
+ [[330   0]
+  [ 18   2]]
+
+ [[229  38]
+  [ 22 103]]
+
+ [[315  25]
+  [ 26  17]]
+
+ [[324  15]
+  [  8   8]]
+
+ [[332  40]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.58          0.39          0.47          82
+            1          0.41          0.66          0.51          32
+            2          0.87          0.72          0.78          208
+            3          1.00          0.10          0.18          20
+            4          0.73          0.82          0.77          125
+            5          0.40          0.40          0.40          43
+            6          0.35          0.50          0.41          16
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.63          0.63          0.63          526
+    macro avg          0.62          0.51          0.50          526
+ weighted avg          0.71          0.63          0.65          526
+seed: 25
+loop: 17
+================================================================================
+
+                                    train_count  train_prop
+social life                               471.0    0.178951
+law politics and warfare                  331.0    0.125760
+travel transport and communication       1978.0    0.751520
+disease and death                          70.0    0.026596
+money work and finance                   1924.0    0.731003
+general                                   295.0    0.112082
+religion                                  174.0    0.066109================================================================================
+
+test results[[[306  27]
+  [ 35  37]]
+
+ [[321  21]
+  [ 11  22]]
+
+ [[190  30]
+  [ 59 153]]
+
+ [[339   0]
+  [ 14   4]]
+
+ [[239  33]
+  [ 28 104]]
+
+ [[329  23]
+  [ 27  14]]
+
+ [[334   8]
+  [  5   9]]
+
+ [[343  37]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.58          0.51          0.54          72
+            1          0.51          0.67          0.58          33
+            2          0.84          0.72          0.77          212
+            3          1.00          0.22          0.36          18
+            4          0.76          0.79          0.77          132
+            5          0.38          0.34          0.36          41
+            6          0.53          0.64          0.58          14
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.66          0.66          0.66          522
+    macro avg          0.66          0.56          0.57          522
+ weighted avg          0.72          0.66          0.68          522
+seed: 25
+loop: 18
+================================================================================
+
+                                    train_count  train_prop
+social life                               476.0    0.172027
+law politics and warfare                  331.0    0.119624
+travel transport and communication       2101.0    0.759306
+disease and death                          72.0    0.026021
+money work and finance                   2059.0    0.744127
+general                                   295.0    0.106614
+religion                                  174.0    0.062884================================================================================
+
+test results[[[296  44]
+  [ 40  34]]
+
+ [[313  14]
+  [ 15  17]]
+
+ [[181  27]
+  [ 61 149]]
+
+ [[326   1]
+  [ 14   4]]
+
+ [[227  39]
+  [ 29 103]]
+
+ [[313  22]
+  [ 26  17]]
+
+ [[324  11]
+  [  9   6]]
+
+ [[330  36]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.44          0.46          0.45          74
+            1          0.55          0.53          0.54          32
+            2          0.85          0.71          0.77          210
+            3          0.80          0.22          0.35          18
+            4          0.73          0.78          0.75          132
+            5          0.44          0.40          0.41          43
+            6          0.35          0.40          0.38          15
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.63          0.63          0.63          524
+    macro avg          0.59          0.50          0.52          524
+ weighted avg          0.69          0.63          0.65          524
+seed: 25
+loop: 19
+================================================================================
+
+                                    train_count  train_prop
+social life                               477.0    0.164369
+law politics and warfare                  332.0    0.114404
+travel transport and communication       2230.0    0.768436
+disease and death                          72.0    0.024810
+money work and finance                   2193.0    0.755686
+general                                   295.0    0.101654
+religion                                  174.0    0.059959================================================================================
+
+test results[[[302  33]
+  [ 36  39]]
+
+ [[324  11]
+  [ 16  17]]
+
+ [[185  32]
+  [ 46 156]]
+
+ [[336   0]
+  [ 11   5]]
+
+ [[237  41]
+  [ 25 104]]
+
+ [[328   9]
+  [ 28  13]]
+
+ [[334   4]
+  [  8   7]]
+
+ [[341  40]
+  [  0   0]]]
+
+       class#     precision        recall      f1-score        weight
+
+            0          0.54          0.52          0.53          75
+            1          0.61          0.52          0.56          33
+            2          0.83          0.77          0.80          202
+            3          1.00          0.31          0.48          16
+            4          0.72          0.81          0.76          129
+            5          0.59          0.32          0.41          41
+            6          0.64          0.47          0.54          15
+          NoC          There is not any data with no true-label assigned!
+
+    micro avg          0.67          0.67          0.67          511
+    macro avg          0.70          0.53          0.58          511
+ weighted avg          0.73          0.67          0.69          511
