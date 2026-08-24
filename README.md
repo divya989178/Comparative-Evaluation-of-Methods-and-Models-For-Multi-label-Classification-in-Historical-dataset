@@ -1,6 +1,11 @@
-Two Methods Direct and Indirect Methods
+
+The repository consists of results, data used for the study, and code for all the methods.
+
+INFORMATION ON THE DIRECT AND INDIRECT CODE:
+
 
 Direct Method: Uses few and zero shot technique through open model (Qwen and Mistral) and Close Models (Gemini and Claude) to annotate the unlabeled dataset using the libraries like outlines and pydantic to control the output generation.
+
 Indirect Method: Has 4 Main functions(with sub functions): 
 
 *Processor: Prepares the dataset for annotation (tokenization but without attention mask and padding) for training and annotation by GenAI. Creates a file name Cache to store labeled data. It is responsible for updating the cache file with newly annotated samples and reloads the training data with newly annotated samples
@@ -13,3 +18,5 @@ Filters out the labeled samples from unlabeled ones and calculates uncertainity 
 *Custom trainer: Model gets trained through GenAI labeled samples
 
 *the main active learning loop: The Main active learning loop which combines all of these methods and runs.
+
+
