@@ -1,0 +1,451 @@
+pip install "numpy<2.0"
+import pandas as pd
+!pip install -q "transformers==5.12.1"
+!pip install mlcm
+from datasets import Dataset, DatasetDict
+from sklearn.preprocessing import MultiLabelBinarizer
+import numpy as np
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+    TrainerCallback,
+    EarlyStoppingCallback,
+    set_seed,
+    EvalPrediction
+)
+import torch
+
+
+
+train=pd.read_excel("/content/demo.xlsx")
+val=pd.read_excel("/content/val.xlsx")
+test=pd.read_excel("/content/test.xlsx")
+
+train["label"] = train["label"].str.split(',').apply(lambda x: [label.strip() for label in x])
+mlb = MultiLabelBinarizer()
+domain_matrix = mlb.fit_transform(train["label"])
+domain_names = mlb.classes_
+print("domain classes:", domain_names)
+
+df_domain = pd.DataFrame(domain_matrix,index=train.index,columns=domain_names)
+train_set = pd.concat([train[["text"]], df_domain], axis=1)
+
+val["label"] = val["label"].str.split(',').apply(lambda x: [label.strip() for label in x])
+domain_matrix = mlb.transform(val["label"])
+domain_names = mlb.classes_
+print("domain classes:", domain_names)
+
+df_domain = pd.DataFrame(domain_matrix,index=val.index,columns=domain_names)
+val_set = pd.concat([val[["text"]], df_domain], axis=1)
+
+test["label"] = test["label"].str.split(',').apply(lambda x: [label.strip() for label in x])
+domain_matrix = mlb.transform(test["label"])
+domain_names = mlb.classes_
+print("domain classes:", domain_names)
+
+df_domain = pd.DataFrame(domain_matrix,index=test.index,columns=domain_names)
+test_set = pd.concat([test[["text"]], df_domain], axis=1)
+
+train_data = Dataset.from_pandas(train_set, preserve_index=False)
+val_data = Dataset.from_pandas(val_set, preserve_index=False)
+test_data  = Dataset.from_pandas(test_set,  preserve_index=False)
+
+dataset_dict = DatasetDict({
+    "train":      train_data,
+    "val"  :      val_data,
+    "test":       test_data
+})
+
+print(dataset_dict)
+
+labels = [label for label in dataset_dict["train"].features.keys() if label not in ['text']]
+id2label = {idx:label for idx, label in enumerate(labels)}
+label2id = {label:idx for idx, label in enumerate(labels)}
+labels
+
+
+tokenizer = AutoTokenizer.from_pretrained("emanjavacas/MacBERTh")
+
+def preprocess_data(examples):
+  # take a batch of texts
+  text = examples["text"]
+  # encode them
+  encoding = tokenizer(text, padding="max_length", max_length=512,truncation=True)
+  # add labels
+  labels_batch = {k: examples[k] for k in examples.keys() if k in labels}
+  # create numpy array of shape (batch_size, num_labels)
+  labels_matrix = np.zeros((len(text), len(labels)))
+  # fill numpy array
+  for idx, label in enumerate(labels):
+    labels_matrix[:, idx] = labels_batch[label]
+
+  encoding["label"] = labels_matrix.tolist()
+
+  return encoding
+
+encoded_dataset = dataset_dict.map(preprocess_data, batched=True, remove_columns=dataset_dict['train'].column_names)
+encoded_dataset.set_format("torch")
+
+if not hasattr(np, 'int'):
+    np.int = int
+    np.float = float
+    np.bool = bool
+
+from mlcm import mlcm
+
+def multi_label_metrics(predictions, labels, threshold=0.5):
+    # first, apply sigmoid on predictions which are of shape (batch_size, num_labels)
+    sigmoid = torch.nn.Sigmoid()
+    probs = sigmoid(torch.Tensor(predictions))
+    # next, use threshold to turn them into integer predictions
+    y_pred = np.zeros(probs.shape)
+    y_pred[np.where(probs >= threshold)] = 1
+    # finally, compute metrics
+    y_true = labels
+    conf_mat,_ = mlcm.cm(y_true,y_pred,False)
+    f = io.StringIO()
+    with redirect_stdout(f):
+       one_vs_rest = mlcm.stats(conf_mat)
+    output = f.getvalue()
+    macro_f1 = float([l for l in output.split('\n') if 'macro avg' in l][0].split()[4])
+    metrics = {'f1': macro_f1}
+    return metrics
+def compute_metrics(p: EvalPrediction):
+    preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
+    result = multi_label_metrics(predictions=preds, labels=p.label_ids)
+    return result
+
+import optuna
+import numpy as np
+import torch
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+    TrainerCallback,
+)
+from functools import lru_cache
+import pandas as pd
+
+NUM_LABELS = 7
+MAX_LENGTH = 512
+N_TRIALS   = 25
+TIMEOUT    = 3600  # total budget for the single unified study
+
+CANDIDATE_MODELS = [
+    "emanjavacas/MacBERTh",
+    "FacebookAI/xlm-roberta-base",
+    "google-bert/bert-base-multilingual-cased",
+    "FacebookAI/roberta-base",
+]
+
+
+@lru_cache(maxsize=None)
+def get_tokenized_dataset(model_name: str):
+    tokenizer = AutoTokenizer.from_pretrained(model_name, force_download=True)
+
+    def preprocess_data(examples):
+        text = examples["text"]
+        encoding = tokenizer(text, padding="max_length", max_length=MAX_LENGTH, truncation=True)
+        labels_batch = {k: examples[k] for k in examples.keys() if k in labels}
+        labels_matrix = np.zeros((len(text), len(labels)))
+        for idx, label in enumerate(labels):
+            labels_matrix[:, idx] = labels_batch[label]
+        encoding["labels"] = labels_matrix.tolist()
+        return encoding
+
+    encoded_dataset = dataset_dict.map(preprocess_data, batched=True, remove_columns=dataset_dict["train"].column_names)
+    encoded_dataset.set_format("torch")
+    train = encoded_dataset["train"].shuffle(seed=42)
+    eval_ = encoded_dataset["val"]
+    return train, eval_
+
+
+class OptunaPruningCallback(TrainerCallback):
+
+    def __init__(self, trial: optuna.Trial, monitor: str = "eval_loss"):
+        self.trial   = trial
+        self.monitor = monitor
+
+    def on_evaluate(self, args, state, control, metrics, **kwargs):
+        value = metrics.get(self.monitor)
+        if value is None:
+            return
+        self.trial.report(value, step=int(state.epoch))
+        if self.trial.should_prune():
+            raise optuna.exceptions.TrialPruned(
+                f"Trial pruned at epoch {state.epoch:.1f} with {self.monitor}={value:.4f}"
+            )
+
+
+def train_one_model(model_name: str, trial: optuna.Trial, hparams: dict) -> float:
+  
+    train_dataset, eval_dataset = get_tokenized_dataset(model_name)
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_name,
+        problem_type="multi_label_classification",
+        num_labels=len(labels),
+        ignore_mismatched_sizes=True,
+        id2label=id2label,
+        label2id=label2id,
+    )
+
+    training_args = TrainingArguments(
+        output_dir=f"./trials/trial_{trial.number}_{model_name.replace('/', '_')}",
+        eval_strategy="epoch",
+        logging_strategy="epoch",
+        save_strategy="no",
+        learning_rate=hparams["learning_rate"],
+        per_device_train_batch_size=hparams["batch_size"],
+        num_train_epochs=hparams["num_epochs"],
+        warmup_ratio=0.01,
+        weight_decay=0.01,
+        load_best_model_at_end=False,
+        report_to="none",
+        fp16=torch.cuda.is_available(),
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        compute_metrics=compute_metrics,
+        callbacks=[OptunaPruningCallback(trial, monitor="eval_loss")],
+    )
+
+    try:
+        trainer.train()
+        metrics = trainer.evaluate()
+        f1 = metrics["eval_f1"]
+    finally:
+        del model, trainer
+        torch.cuda.empty_cache()
+
+    return f1
+
+
+def unified_objective(trial: optuna.Trial) -> float:
+    """
+    Single objective: sample one hyperparameter config, train ALL models with it,
+    and return the mean F1 across all models.
+    Pruning is triggered by any individual model — if one model's trial is pruned,
+    the whole trial is pruned.
+    """
+    hparams = {
+        "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True),
+        "batch_size":    trial.suggest_categorical("batch_size", [6, 8, 16]),
+        "num_epochs":    trial.suggest_int("num_epochs", 5, 10),
+    }
+
+    print(f"\n[Trial {trial.number}] Hyperparameters: {hparams}")
+
+    f1_scores = {}
+    for model_name in CANDIDATE_MODELS:
+        print(f"  → Training {model_name} ...")
+        try:
+            f1 = train_one_model(model_name, trial, hparams)
+            f1_scores[model_name] = f1
+            print(f" F1: {f1:.4f}")
+        except optuna.exceptions.TrialPruned:
+            print(f" Pruned during {model_name}.")
+            raise 
+
+    mean_f1 = float(np.mean(list(f1_scores.values())))
+    print(f" Mean F1 across all models: {mean_f1:.4f}")
+
+    # Store per-model F1s as trial user attributes for inspection later
+    for model_name, f1 in f1_scores.items():
+        trial.set_user_attr(model_name, f1)
+
+    return mean_f1
+
+
+study = optuna.create_study(
+    study_name="unified_all_models",
+    direction="maximize",
+    sampler=optuna.samplers.TPESampler(seed=42),
+    pruner=optuna.pruners.MedianPruner(
+        n_startup_trials=5,
+        n_warmup_steps=1,
+        interval_steps=1,
+    ),
+)
+
+study.optimize(unified_objective, n_trials=N_TRIALS, timeout=TIMEOUT)
+
+print(f"  Best Mean F1 : {study.best_value:.4f}")
+print(f"  Best Params  : {study.best_params}")
+
+for model_name in CANDIDATE_MODELS:
+    f1 = study.best_trial.user_attrs.get(model_name, "N/A")
+    print(f"  {model_name:<45} F1: {f1:.4f}" if isinstance(f1, float) else f"  {model_name}: {f1}")
+
+# Summary table of all completed trials
+
+df = study.trials_dataframe()
+completed = df[df["state"] == "COMPLETE"].copy()
+print(completed[["number", "value"] + [c for c in completed.columns if c.startswith("user_attrs")]].to_string(index=False))
+
+
+import numpy as np
+import pandas as pd
+import torch
+import os
+from contextlib import redirect_stdout
+import io
+
+# Create results directory if it doesn't exist
+os.makedirs('results', exist_ok=True)
+os.makedirs('bert', exist_ok=True)
+
+seeds = [5,25,35,45,55]
+
+# Store metrics across seeds
+all_seed_metrics = []
+full_train_dataset = encoded_dataset["train"]
+
+
+for seed in seeds:
+    set_seed(seed)
+
+    print(f"\n{'='*80}")
+    print(f"TRAINING WITH SEED: {seed}")
+    print(f"{'='*80}\n")
+
+    model = AutoModelForSequenceClassification.from_pretrained("google-bert/bert-base-multilingual-cased",
+                                                           problem_type="multi_label_classification",
+                                                           num_labels=len(labels),
+                                                           id2label=id2label,
+                                                           label2id=label2id)
+
+    # Set seed in training arguments
+    args = TrainingArguments(
+        f"k_seed_{seed}",  # Different output dir per seed
+        report_to=[],
+        eval_strategy="epoch",
+        save_strategy="no",
+        logging_strategy="epoch",
+        learning_rate=2.6e-5,
+        weight_decay=0.1,
+        warmup_ratio=0.1,
+        remove_unused_columns=False,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        num_train_epochs=10,
+        load_best_model_at_end=False,
+        metric_for_best_model="eval_loss",
+        seed=seed
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=args,
+        train_dataset=encoded_dataset["train"],
+        eval_dataset=encoded_dataset["val"],
+        processing_class=tokenizer,
+        compute_metrics=compute_metrics,
+         callbacks=[
+        EarlyStoppingCallback(           # ← wire up the patience from Args
+            early_stopping_patience=3
+        )
+    ],
+    )
+
+    # Train
+    trainer.train()
+
+    # Run predictions on test set
+    predictions = trainer.predict(encoded_dataset['test'])
+
+    # Apply sigmoid to get probabilities
+    probs = torch.sigmoid(torch.tensor(predictions.predictions)).numpy()
+    pred_labels = (probs >= 0.5).astype(int)
+
+    # True labels
+    true_labels = predictions.label_ids
+
+    # Get classification report
+    conf_mat, _ = mlcm.cm(true_labels, pred_labels, False)
+
+    # Capture the output when mlcm.stats() is called (it prints during execution)
+    f_output = io.StringIO()
+    with redirect_stdout(f_output):
+        stats_output = mlcm.stats(conf_mat)
+
+    formatted_output = f_output.getvalue()
+
+    # Save full report to file
+    with open(f'results/mcbert_mistralfew.txt', 'a') as f:
+        f.write(f"Seed: {seed}\n")
+        f.write("="*80 + "\n\n")
+        f.write(formatted_output)
+
+
+    # Print to console (so you can still see it)
+    print(formatted_output)
+    np.savetxt(f"results/mcbert_mistralfew_predsseed{seed}.txt", pred_labels, fmt='%d')
+
+    # Parse micro and macro F1 from formatted_output
+    micro_f1 = None
+    macro_f1 = None
+
+    for line in formatted_output.split('\n'):
+        if 'micro avg' in line:
+            parts = line.split()
+            try:
+                # parts: ['micro', 'avg', precision, recall, f1-score, weight]
+                # f1-score is at index 4
+                micro_f1 = float(parts[4])
+            except (ValueError, IndexError):
+                pass
+
+        if 'macro avg' in line:
+            parts = line.split()
+            try:
+                # parts: ['macro', 'avg', precision/nan, recall, f1-score, weight]
+                # f1-score is always at index 4
+                macro_f1 = float(parts[4])
+            except (ValueError, IndexError):
+                pass
+
+    print(f"\nExtracted Metrics:")
+    print(f"Micro F1: {micro_f1:.4f}" if micro_f1 is not None else "Micro F1: Not found")
+    print(f"Macro F1: {macro_f1:.4f}" if macro_f1 is not None else "Macro F1: Not found")
+
+    # Store metrics
+    all_seed_metrics.append({
+        'seed': seed,
+        'micro_f1': micro_f1,
+        'macro_f1': macro_f1
+    })
+    del model, trainer
+    torch.cuda.empty_cache()
+
+
+
+results_df = pd.DataFrame(all_seed_metrics)
+
+results_df.to_csv('bert/mcbertmistralfew_seeds_summary.csv', index=False)
+
+
+print("\n" + "="*80)
+print("FINAL RESULTS (Mean ± Std across 5 seeds)")
+print("="*80)
+print(f"Micro F1: {results_df['micro_f1'].mean():.3f} ± {results_df['micro_f1'].std():.3f}")
+print(f"Macro F1: {results_df['macro_f1'].mean():.3f} ± {results_df['macro_f1'].std():.3f}")
+print("="*80)
+
+
+with open('bert/mcbertmistralfew_meanstd.txt', 'w') as f:
+    f.write("FINAL RESULTS (Mean ± Std across 5 seeds)\n")
+    f.write("="*80 + "\n")
+    f.write(f"Micro F1: {results_df['micro_f1'].mean():.3f} ± {results_df['micro_f1'].std():.3f}\n")
+    f.write(f"Macro F1: {results_df['macro_f1'].mean():.3f} ± {results_df['macro_f1'].std():.3f}\n")
+
+print("classification_report_seed_XX.txt")
+print("all_seeds_summary.csv")
