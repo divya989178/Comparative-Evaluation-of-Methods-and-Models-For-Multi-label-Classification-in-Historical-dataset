@@ -15,7 +15,10 @@ from transformers import (
     set_seed,
     EvalPrediction
 )
-import torch
+
+import os
+from contextlib import redirect_stdout
+import io
 
 
 
@@ -227,15 +230,8 @@ def train_one_model(model_name: str, trial: optuna.Trial, hparams: dict) -> floa
         torch.cuda.empty_cache()
 
     return f1
-
-
 def unified_objective(trial: optuna.Trial) -> float:
-    """
-    Single objective: sample one hyperparameter config, train ALL models with it,
-    and return the mean F1 across all models.
-    Pruning is triggered by any individual model — if one model's trial is pruned,
-    the whole trial is pruned.
-    """
+
     hparams = {
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True),
         "batch_size":    trial.suggest_categorical("batch_size", [6, 8, 16]),
@@ -263,8 +259,6 @@ def unified_objective(trial: optuna.Trial) -> float:
         trial.set_user_attr(model_name, f1)
 
     return mean_f1
-
-
 study = optuna.create_study(
     study_name="unified_all_models",
     direction="maximize",
@@ -284,28 +278,15 @@ print(f"  Best Params  : {study.best_params}")
 for model_name in CANDIDATE_MODELS:
     f1 = study.best_trial.user_attrs.get(model_name, "N/A")
     print(f"  {model_name:<45} F1: {f1:.4f}" if isinstance(f1, float) else f"  {model_name}: {f1}")
-
-# Summary table of all completed trials
-
 df = study.trials_dataframe()
 completed = df[df["state"] == "COMPLETE"].copy()
 print(completed[["number", "value"] + [c for c in completed.columns if c.startswith("user_attrs")]].to_string(index=False))
 
-
-import numpy as np
-import pandas as pd
-import torch
-import os
-from contextlib import redirect_stdout
-import io
-
-# Create results directory if it doesn't exist
 os.makedirs('results', exist_ok=True)
 os.makedirs('bert', exist_ok=True)
 
 seeds = [5,25,35,45,55]
 
-# Store metrics across seeds
 all_seed_metrics = []
 full_train_dataset = encoded_dataset["train"]
 
@@ -323,7 +304,6 @@ for seed in seeds:
                                                            id2label=id2label,
                                                            label2id=label2id)
 
-    # Set seed in training arguments
     args = TrainingArguments(
         f"k_seed_{seed}",  # Different output dir per seed
         report_to=[],
@@ -350,47 +330,42 @@ for seed in seeds:
         processing_class=tokenizer,
         compute_metrics=compute_metrics,
          callbacks=[
-        EarlyStoppingCallback(           # ← wire up the patience from Args
+        EarlyStoppingCallback(        
             early_stopping_patience=3
         )
     ],
     )
 
-    # Train
-    trainer.train()
 
-    # Run predictions on test set
+    trainer.train()
+ 
     predictions = trainer.predict(encoded_dataset['test'])
 
-    # Apply sigmoid to get probabilities
     probs = torch.sigmoid(torch.tensor(predictions.predictions)).numpy()
     pred_labels = (probs >= 0.5).astype(int)
 
-    # True labels
+   
     true_labels = predictions.label_ids
 
-    # Get classification report
+ 
     conf_mat, _ = mlcm.cm(true_labels, pred_labels, False)
 
-    # Capture the output when mlcm.stats() is called (it prints during execution)
+   
     f_output = io.StringIO()
     with redirect_stdout(f_output):
         stats_output = mlcm.stats(conf_mat)
 
     formatted_output = f_output.getvalue()
 
-    # Save full report to file
-    with open(f'results/mcbert_mistralfew.txt', 'a') as f:
+
+    with open(f'results/mcbert_qwenfew.txt', 'a') as f:
         f.write(f"Seed: {seed}\n")
         f.write("="*80 + "\n\n")
         f.write(formatted_output)
-
-
-    # Print to console (so you can still see it)
+ 
     print(formatted_output)
-    np.savetxt(f"results/mcbert_mistralfew_predsseed{seed}.txt", pred_labels, fmt='%d')
+    np.savetxt(f"results/mcbert_qwenw_predsseed{seed}.txt", pred_labels, fmt='%d')
 
-    # Parse micro and macro F1 from formatted_output
     micro_f1 = None
     macro_f1 = None
 
@@ -398,8 +373,7 @@ for seed in seeds:
         if 'micro avg' in line:
             parts = line.split()
             try:
-                # parts: ['micro', 'avg', precision, recall, f1-score, weight]
-                # f1-score is at index 4
+                
                 micro_f1 = float(parts[4])
             except (ValueError, IndexError):
                 pass
@@ -408,7 +382,7 @@ for seed in seeds:
             parts = line.split()
             try:
                 # parts: ['macro', 'avg', precision/nan, recall, f1-score, weight]
-                # f1-score is always at index 4
+                
                 macro_f1 = float(parts[4])
             except (ValueError, IndexError):
                 pass
@@ -417,7 +391,6 @@ for seed in seeds:
     print(f"Micro F1: {micro_f1:.4f}" if micro_f1 is not None else "Micro F1: Not found")
     print(f"Macro F1: {macro_f1:.4f}" if macro_f1 is not None else "Macro F1: Not found")
 
-    # Store metrics
     all_seed_metrics.append({
         'seed': seed,
         'micro_f1': micro_f1,
@@ -426,11 +399,9 @@ for seed in seeds:
     del model, trainer
     torch.cuda.empty_cache()
 
-
-
 results_df = pd.DataFrame(all_seed_metrics)
 
-results_df.to_csv('bert/mcbertmistralfew_seeds_summary.csv', index=False)
+results_df.to_csv('bert/mcbertqwenfew_seeds_summary.csv', index=False)
 
 
 print("\n" + "="*80)
@@ -441,7 +412,7 @@ print(f"Macro F1: {results_df['macro_f1'].mean():.3f} ± {results_df['macro_f1']
 print("="*80)
 
 
-with open('bert/mcbertmistralfew_meanstd.txt', 'w') as f:
+with open('bert/mcbertqwenfew_meanstd.txt', 'w') as f:
     f.write("FINAL RESULTS (Mean ± Std across 5 seeds)\n")
     f.write("="*80 + "\n")
     f.write(f"Micro F1: {results_df['micro_f1'].mean():.3f} ± {results_df['micro_f1'].std():.3f}\n")
