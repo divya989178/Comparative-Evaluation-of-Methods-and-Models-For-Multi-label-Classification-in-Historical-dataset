@@ -1,6 +1,8 @@
 
 The repository consists of results, data used for the study, and code for all the methods.
 
+The direct and indirect codes are adaptation from https://github.com/ridiculouz/LLMaAA/tree/main and https://github.com/trister95/direct-and-indirect-annotation
+
 INFORMATION ON THE DIRECT AND INDIRECT CODE:
 
 
